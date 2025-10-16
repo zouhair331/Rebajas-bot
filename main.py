@@ -80,13 +80,13 @@ async def start(message: Message):
 
 @dp.message(lambda msg: msg.text in ["🆕 Compré antes por Temu", "🎁 Nunca compré por Temu"])
 async def handle_buttons(message: Message):
-    if message.text == "🆕 compro antes por temu":
+    if message.text == "🆕 Compré antes por Temu":
         await message.reply(
             f"🎉 ¡Aquí tienes tu cupón para clientes existentes!\n\n"
             f"🔗 {link_todousr}"
         )
     
-    elif message.text == "🎁 nunca compro por temu":
+    elif message.text == "🎁 Nunca compré por Temu":
         await message.reply(
                         f"🎁 ¡Aquí tienes cupones para nuevos usuarios!\n\n"
             f"💰 Kit de cupones 100€:\n"
