@@ -1,21 +1,16 @@
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 import asyncio
 import os
 from dotenv import load_dotenv
+from aiohttp import web
 
-
+# تحميل المتغيرات البيئية
 load_dotenv()
 
-bot = Bot(token=os.getenv("TOKEN_BOT"))
-dp = Dispatcher()
-
-
-
-
-#Para nuevos usuarios de la app
-#Kit de cupones de 100€
+# المتغيرات
+TOKEN_BOT = os.getenv("TOKEN_BOT")
 afilit_nuser1 = os.getenv("AFILITE_NUSER1")
 afilit_nuser2 = os.getenv("AFILIT_NUSER2")
 codigo_cupon1 = os.getenv("CODIGO_CUPON1")
@@ -34,28 +29,57 @@ codigo_cupon3 = os.getenv("CODIGO_CUPON3")
 #Todos los usuarios
 link_todousr = os.getenv("LINK_TODOUSR")
 
+# التحقق من التوكن
+if not TOKEN_BOT:
+    raise ValueError("❌ BOT_TOKEN غير موجود!")
 
+bot = Bot(token=TOKEN_BOT)
+dp = Dispatcher()
+
+# ============ WEB SERVER (Koyeb) ============
+async def health_check(request):
+    """Health check endpoint"""
+    bot_info = await bot.get_me()
+    return web.Response(text=f"✅ Bot @{bot_info.username} is running!")
+
+async def root_handler(request):
+    """Root endpoint"""
+    return web.Response(text="🤖 Temu Bot is active!")
+
+async def start_web_server():
+    """تشغيل HTTP server"""
+    app = web.Application()
+    app.router.add_get('/', root_handler)
+    app.router.add_get('/health', health_check)
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    
+    # Koyeb يستخدم PORT environment variable
+    port = int(os.getenv('PORT', 8000))
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    print(f"🌐 Web server running on port {port}")
+    return site
+# ================================================
 
 @dp.message(Command("start"))
 async def start(message: Message):
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="🆕 compro antes por temu")],
-            [KeyboardButton(text="🎁 nunca compro por temu")],
-                  
+            [KeyboardButton(text="🆕 Compré antes por Temu")],
+            [KeyboardButton(text="🎁 Nunca compré por Temu")],
         ],
         resize_keyboard=True
-        )
-    await message.reply(
-        
-        "hola, a tu bot de rabajas de temu\n\nha comprado antes por temu?",
-        reply_markup=keyboard
-        
     )
-    
-    
-@dp.message(lambda message: message.text in["🆕 compro antes por temu","🎁 nunca compro por temu"])    
-async def hand_btn(message: Message):
+    await message.reply(
+        "¡Hola! Bienvenido a tu bot de rebajas de Temu 🛍️\n\n"
+        "¿Has comprado antes por Temu?",
+        reply_markup=keyboard
+    )
+
+@dp.message(lambda msg: msg.text in ["🆕 Compré antes por Temu", "🎁 Nunca compré por Temu"])
+async def handle_buttons(message: Message):
     if message.text == "🆕 compro antes por temu":
         await message.reply(
             f"🎉 ¡Aquí tienes tu cupón para clientes existentes!\n\n"
@@ -79,12 +103,32 @@ async def hand_btn(message: Message):
             f"🎟️ Código generar : {codigo_cupon3}"
             
         )
+async def main():
+    print("=" * 50)
+    print("🚀 Starting Temu Bot...")
+    print("=" * 50)
+    
+    # معلومات البوت
+    bot_info = await bot.get_me()
+    print(f"✅ Bot: @{bot_info.username}")
+    print(f"🆔 ID: {bot_info.id}")
+    
+    # تشغيل web server في background
+    site = await start_web_server()
+    print("✅ Web server started")
+    
+    # تشغيل البوت
+    print("✅ Starting bot polling...")
+    try:
+        await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+    finally:
+        await site.stop()
+        await bot.session.close()
 
-    
-async def runing():
-    print("✅ Bot iniciado...")
-    await dp.start_polling(bot)
-    
 if __name__ == "__main__":
-    asyncio.run(runing())
-
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n⛔ Bot stopped by user")
+    except Exception as e:
+        print(f"❌ Error: {e}")
