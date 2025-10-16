@@ -88,7 +88,7 @@ async def handle_buttons(message: Message):
     
     elif message.text == "🎁 Nunca compré por Temu":
         await message.reply(
-                        f"🎁 ¡Aquí tienes cupones para nuevos usuarios!\n\n"
+            f"🎁 ¡Aquí tienes cupones para nuevos usuarios!\n\n"
             f"💰 Kit de cupones 100€:\n"
             f"🔗 Opción 1: {afilit_nuser1}\n"
             f"🔗 Opción 2: {afilit_nuser2}\n\n"
@@ -98,9 +98,9 @@ async def handle_buttons(message: Message):
             f"🔗 Regalo 2: {regalo2}\n"
             f"🎟️ Código: `{codigo_cupon2}`"
             f"💰 Generar enlace para nuevos usuarios de temu\n"
-            f"🔗 cupón generar 1: {link_generar1}\n\n"
-            f"🔗 cupón generar 2: {link_profund}\n\n"
-            f"🎟️ Código generar : {codigo_cupon3}"
+            f"🔗 cupón generar 1: {link_generar1}\n"
+            f"🔗 cupón generar 2: {link_profund}\n"
+            f"🎟️ Código generar: {codigo_cupon3}"
             
         )
 async def main():
